@@ -1,4 +1,3 @@
-
 import { Availability, Flat, Location } from "@/types/apartment";
 import { addDays, format, parse, parseISO } from "date-fns";
 
@@ -100,7 +99,7 @@ export const getAvailabilityForDateRange = (
         kadriFlats.forEach(flat => {
           const flatData = kadriData.flatAvailability[flat.id];
           if (flatData && flatData.available && flat.capacity >= guestCount) {
-            availableFlats.push(`kadri-${flat.id}`); // Prefix with location to avoid duplicate IDs
+            availableFlats.push(`kadri-${flat.id}`);
           }
         });
       }
@@ -111,7 +110,7 @@ export const getAvailabilityForDateRange = (
         bejaiFlats.forEach(flat => {
           const flatData = bejaiData.flatAvailability[flat.id];
           if (flatData && flatData.available && flat.capacity >= guestCount) {
-            availableFlats.push(`bejai-${flat.id}`); // Prefix with location to avoid duplicate IDs
+            availableFlats.push(`bejai-${flat.id}`);
           }
         });
       }
@@ -122,11 +121,11 @@ export const getAvailabilityForDateRange = (
       });
     } else {
       // Original logic for single location
-      const data = getDataByLocation(location);
-      const flatsInLocation = getFlatsByLocation(location);
+      const locationData = location === 'kadri' ? kadriAprilData : bejaiAprilData;
+      const flatsInLocation = flats.filter(flat => flat.location === location);
       
       // Find the availability data for this date
-      const availabilityData = data.find(d => d.date === formattedDate);
+      const availabilityData = locationData.find(d => d.date === formattedDate);
       
       if (availabilityData) {
         const availableFlats = flatsInLocation

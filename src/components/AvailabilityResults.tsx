@@ -17,6 +17,7 @@ export default function AvailabilityResults({
   results,
   selectedDate
 }: AvailabilityResultsProps) {
+  // Get all flats from both locations when 'all' is selected
   const flats = getFlatsByLocation(location);
   const locationColor = "apartment-kadri"; // Consistently use green
 
@@ -55,7 +56,7 @@ export default function AvailabilityResults({
 
   const getFlatDisplayInfo = (flatId: string) => {
     // For the 'all' location option, we prefixed the IDs with location-
-    if (location === 'all' && flatId.includes('-')) {
+    if (flatId.includes('-')) {
       const [locationPart, idPart] = flatId.split('-');
       return {
         id: idPart,
@@ -69,6 +70,11 @@ export default function AvailabilityResults({
       location: location === 'all' ? 'kadri' : location, // Fallback
       displayName: `Flat ${flatId}`
     };
+  };
+
+  // Find a flat by id and location from the complete flats array
+  const findFlatByIdAndLocation = (id: string, location: 'kadri' | 'bejai') => {
+    return flats.find(f => f.id === id && f.location === location);
   };
 
   return (
@@ -112,6 +118,11 @@ export default function AvailabilityResults({
             );
             const availableOnExactDate = exactDateResult?.availableFlats.includes(flatId) || false;
             
+            // Get capacity - we need to find the flat by both ID and location when in 'all' mode
+            const flatObj = location === 'all' ? 
+              findFlatByIdAndLocation(flatInfo.id, flatInfo.location) : 
+              flats.find(f => f.id === flatInfo.id);
+            
             return (
               <Card 
                 key={flatId}
@@ -141,7 +152,7 @@ export default function AvailabilityResults({
                   <CardDescription 
                     className={availableOnExactDate ? "text-white/90" : ""}
                   >
-                    Capacity: {flats.find(f => f.id === flatInfo.id)?.capacity || "N/A"} guests
+                    Capacity: {flatObj?.capacity || "N/A"} guests
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">
