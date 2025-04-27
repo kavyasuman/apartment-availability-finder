@@ -66,7 +66,7 @@ export default {
 					primary: '#0EA5E9',
 					secondary: '#10B981',
 					accent: '#33C3F0',
-					kadri: '#3B82F6',
+					kadri: '#10B981',
 					bejai: '#10B981',
 				}
 			},

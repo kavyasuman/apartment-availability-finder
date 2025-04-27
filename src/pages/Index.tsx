@@ -7,7 +7,7 @@ import { getAvailabilityForDateRange } from "@/data/mockData";
 import { useToast } from "@/components/ui/use-toast";
 
 type SearchParams = {
-  location: 'kadri' | 'bejai';
+  location: 'kadri' | 'bejai' | 'all';
   date: Date;
   guestCount: number;
 };
@@ -36,7 +36,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-50 py-8">
+    <div className="py-8">
       <div className="container mx-auto px-4">
         <header className="text-center mb-10">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-apartment-primary to-apartment-accent bg-clip-text text-transparent">
@@ -44,6 +44,9 @@ const Index = () => {
           </h1>
           <p className="mt-2 text-gray-600 max-w-lg mx-auto">
             Find available service apartments in Kadri and Bejai based on your travel dates and guest count.
+          </p>
+          <p className="mt-2 text-sm text-gray-500 max-w-lg mx-auto">
+            For specific location availability, select Kadri or Bejai from the dropdown menu and search again.
           </p>
         </header>
 
