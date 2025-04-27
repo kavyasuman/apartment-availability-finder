@@ -1,12 +1,13 @@
+
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flat } from "@/types/apartment";
+import { Flat, Location } from "@/types/apartment";
 import { getFlatsByLocation } from "@/data/mockData";
-import { CheckCheck } from "lucide-react";
+import { CheckCheck, MapPin } from "lucide-react";
 
 type AvailabilityResultsProps = {
-  location: 'kadri' | 'bejai' | 'all';
+  location: Location;
   results: { date: Date; availableFlats: string[] }[];
   selectedDate: Date;
 };
@@ -16,11 +17,8 @@ export default function AvailabilityResults({
   results,
   selectedDate
 }: AvailabilityResultsProps) {
-  const flats = location === 'all' 
-    ? [...getFlatsByLocation('kadri'), ...getFlatsByLocation('bejai')]
-    : getFlatsByLocation(location);
-
-  const locationColor = location === 'kadri' ? 'apartment-kadri' : 'apartment-bejai';
+  const flats = getFlatsByLocation(location);
+  const locationColor = "apartment-kadri"; // Consistently use green
 
   // Sort results by date
   const sortedResults = [...results].sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -55,12 +53,30 @@ export default function AvailabilityResults({
     );
   }
 
+  const getFlatDisplayInfo = (flatId: string) => {
+    // For the 'all' location option, we prefixed the IDs with location-
+    if (location === 'all' && flatId.includes('-')) {
+      const [locationPart, idPart] = flatId.split('-');
+      return {
+        id: idPart,
+        location: locationPart as 'kadri' | 'bejai',
+        displayName: `${locationPart.charAt(0).toUpperCase() + locationPart.slice(1)} - Flat ${idPart}`
+      };
+    }
+    
+    return {
+      id: flatId,
+      location: location === 'all' ? 'kadri' : location, // Fallback
+      displayName: `Flat ${flatId}`
+    };
+  };
+
   return (
     <div className="max-w-2xl mx-auto mt-8">
       <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 mb-4">
         <h2 className="text-2xl font-bold mb-4 text-center">
           Available Apartments {location !== 'all' && (
-            <span className={`text-${locationColor}`}>
+            <span className="text-apartment-kadri">
               at {location.charAt(0).toUpperCase() + location.slice(1)}
             </span>
           )}
@@ -83,9 +99,7 @@ export default function AvailabilityResults({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {allAvailableFlats.map(flatId => {
-            const flat = flats.find(f => f.id === flatId);
-            
-            if (!flat) return null;
+            const flatInfo = getFlatDisplayInfo(flatId);
             
             // Get available dates for this flat
             const availableDates = sortedResults
@@ -103,25 +117,31 @@ export default function AvailabilityResults({
                 key={flatId}
                 className={cn(
                   "overflow-hidden border-2",
-                  availableOnExactDate ? `border-${locationColor}` : "border-gray-200"
+                  availableOnExactDate ? "border-apartment-kadri" : "border-gray-200"
                 )}
               >
                 <CardHeader 
                   className={cn(
                     "relative",
-                    availableOnExactDate ? `bg-${locationColor} text-white` : "bg-gray-100"
+                    availableOnExactDate ? "bg-apartment-kadri text-white" : "bg-gray-100"
                   )}
                 >
                   <CardTitle className="flex items-center">
-                    Flat {flatId}
+                    {flatInfo.displayName}
                     {availableOnExactDate && (
                       <CheckCheck className="ml-2 h-5 w-5" />
                     )}
                   </CardTitle>
+                  {location === 'all' && (
+                    <div className="flex items-center gap-1 text-sm">
+                      <MapPin className="h-3 w-3" />
+                      <span>{flatInfo.location.charAt(0).toUpperCase() + flatInfo.location.slice(1)}</span>
+                    </div>
+                  )}
                   <CardDescription 
                     className={availableOnExactDate ? "text-white/90" : ""}
                   >
-                    Capacity: {flat.capacity} guests
+                    Capacity: {flats.find(f => f.id === flatInfo.id)?.capacity || "N/A"} guests
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4">
@@ -135,7 +155,7 @@ export default function AvailabilityResults({
                           key={date.toISOString()}
                           variant={isExactDate ? "default" : "outline"}
                           className={cn(
-                            isExactDate ? `bg-${locationColor} hover:bg-${locationColor}/90` : "",
+                            isExactDate ? "bg-apartment-kadri hover:bg-apartment-kadri/90" : "",
                             "text-xs"
                           )}
                         >

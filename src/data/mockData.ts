@@ -1,5 +1,5 @@
 
-import { Availability, Flat } from "@/types/apartment";
+import { Availability, Flat, Location } from "@/types/apartment";
 import { addDays, format, parse, parseISO } from "date-fns";
 
 // Define the flats
@@ -55,22 +55,28 @@ const generateAprilData = (location: 'kadri' | 'bejai'): Availability[] => {
 export const kadriAprilData = generateAprilData('kadri');
 export const bejaiAprilData = generateAprilData('bejai');
 
-export const getDataByLocation = (location: 'kadri' | 'bejai') => {
+export const getDataByLocation = (location: Location) => {
+  if (location === 'all') {
+    // For 'all', return combined data from both locations
+    return [...kadriAprilData, ...bejaiAprilData];
+  }
   return location === 'kadri' ? kadriAprilData : bejaiAprilData;
 };
 
-export const getFlatsByLocation = (location: 'kadri' | 'bejai') => {
+export const getFlatsByLocation = (location: Location) => {
+  if (location === 'all') {
+    // For 'all', return all flats
+    return flats;
+  }
   return flats.filter(flat => flat.location === location);
 };
 
 export const getAvailabilityForDateRange = (
-  location: 'kadri' | 'bejai', 
+  location: Location, 
   date: Date, 
   guestCount: number,
   daysFlexibility: number = 2
 ): { date: Date, availableFlats: string[] }[] => {
-  const data = getDataByLocation(location);
-  const flatsInLocation = getFlatsByLocation(location);
   const result: { date: Date, availableFlats: string[] }[] = [];
   
   // Calculate the start and end dates with flexibility
@@ -81,27 +87,66 @@ export const getAvailabilityForDateRange = (
     const currentDate = addDays(startDate, i);
     const formattedDate = format(currentDate, 'yyyy-MM-dd');
     
-    // Find the availability data for this date
-    const availabilityData = data.find(d => d.date === formattedDate);
-    
-    if (availabilityData) {
-      const availableFlats = flatsInLocation
-        .filter(flat => {
-          const flatData = availabilityData.flatAvailability[flat.id];
-          return flatData && flatData.available && flat.capacity >= guestCount;
-        })
-        .map(flat => flat.id);
+    if (location === 'all') {
+      // Handle both locations for 'all'
+      const kadriData = kadriAprilData.find(d => d.date === formattedDate);
+      const bejaiData = bejaiAprilData.find(d => d.date === formattedDate);
+      
+      const availableFlats: string[] = [];
+      
+      // Process Kadri flats
+      if (kadriData) {
+        const kadriFlats = flats.filter(flat => flat.location === 'kadri');
+        kadriFlats.forEach(flat => {
+          const flatData = kadriData.flatAvailability[flat.id];
+          if (flatData && flatData.available && flat.capacity >= guestCount) {
+            availableFlats.push(`kadri-${flat.id}`); // Prefix with location to avoid duplicate IDs
+          }
+        });
+      }
+      
+      // Process Bejai flats
+      if (bejaiData) {
+        const bejaiFlats = flats.filter(flat => flat.location === 'bejai');
+        bejaiFlats.forEach(flat => {
+          const flatData = bejaiData.flatAvailability[flat.id];
+          if (flatData && flatData.available && flat.capacity >= guestCount) {
+            availableFlats.push(`bejai-${flat.id}`); // Prefix with location to avoid duplicate IDs
+          }
+        });
+      }
       
       result.push({
         date: currentDate,
         availableFlats
       });
     } else {
-      // If no data for this date, assume no flats available
-      result.push({
-        date: currentDate,
-        availableFlats: []
-      });
+      // Original logic for single location
+      const data = getDataByLocation(location);
+      const flatsInLocation = getFlatsByLocation(location);
+      
+      // Find the availability data for this date
+      const availabilityData = data.find(d => d.date === formattedDate);
+      
+      if (availabilityData) {
+        const availableFlats = flatsInLocation
+          .filter(flat => {
+            const flatData = availabilityData.flatAvailability[flat.id];
+            return flatData && flatData.available && flat.capacity >= guestCount;
+          })
+          .map(flat => flat.id);
+        
+        result.push({
+          date: currentDate,
+          availableFlats
+        });
+      } else {
+        // If no data for this date, assume no flats available
+        result.push({
+          date: currentDate,
+          availableFlats: []
+        });
+      }
     }
   }
   
