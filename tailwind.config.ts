@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -64,9 +63,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				apartment: {
-					primary: '#3B82F6',
+					primary: '#0EA5E9',
 					secondary: '#10B981',
-					accent: '#0EA5E9',
+					accent: '#33C3F0',
 					kadri: '#3B82F6',
 					bejai: '#10B981',
 				}

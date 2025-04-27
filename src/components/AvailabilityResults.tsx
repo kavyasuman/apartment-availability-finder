@@ -1,4 +1,3 @@
-
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +6,7 @@ import { getFlatsByLocation } from "@/data/mockData";
 import { CheckCheck } from "lucide-react";
 
 type AvailabilityResultsProps = {
-  location: 'kadri' | 'bejai';
+  location: 'kadri' | 'bejai' | 'all';
   results: { date: Date; availableFlats: string[] }[];
   selectedDate: Date;
 };
@@ -17,7 +16,10 @@ export default function AvailabilityResults({
   results,
   selectedDate
 }: AvailabilityResultsProps) {
-  const flats = getFlatsByLocation(location);
+  const flats = location === 'all' 
+    ? [...getFlatsByLocation('kadri'), ...getFlatsByLocation('bejai')]
+    : getFlatsByLocation(location);
+
   const locationColor = location === 'kadri' ? 'apartment-kadri' : 'apartment-bejai';
 
   // Sort results by date
@@ -55,80 +57,98 @@ export default function AvailabilityResults({
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
-      <h2 className="text-2xl font-bold mb-4 text-center">
-        Available Apartments at <span className={`text-${locationColor}`}>{location.charAt(0).toUpperCase() + location.slice(1)}</span>
-      </h2>
-      <p className="text-center mb-6 text-gray-600">
-        Showing availability from {format(sortedResults[0].date, 'MMM dd')} to {format(sortedResults[sortedResults.length - 1].date, 'MMM dd')}
-      </p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {allAvailableFlats.map(flatId => {
-          const flat = flats.find(f => f.id === flatId);
-          
-          if (!flat) return null;
-          
-          // Get available dates for this flat
-          const availableDates = sortedResults
-            .filter(result => result.availableFlats.includes(flatId))
-            .map(result => result.date);
-          
-          // Is this flat available on the exact selected date?
-          const exactDateResult = results.find(
-            r => format(r.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-          );
-          const availableOnExactDate = exactDateResult?.availableFlats.includes(flatId) || false;
-          
-          return (
-            <Card 
-              key={flatId}
-              className={cn(
-                "overflow-hidden border-2",
-                availableOnExactDate ? `border-${locationColor}` : "border-gray-200"
-              )}
-            >
-              <CardHeader 
+      <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 mb-4">
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          Available Apartments {location !== 'all' && (
+            <span className={`text-${locationColor}`}>
+              at {location.charAt(0).toUpperCase() + location.slice(1)}
+            </span>
+          )}
+        </h2>
+        
+        <div className="flex justify-center gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-emerald-100 border-2 border-emerald-500 rounded"></div>
+            <span className="text-sm">Available on selected date</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
+            <span className="text-sm">Available on flexible dates</span>
+          </div>
+        </div>
+
+        <p className="text-center mb-6 text-gray-600">
+          Showing availability from {format(sortedResults[0].date, 'MMM dd')} to {format(sortedResults[sortedResults.length - 1].date, 'MMM dd')}
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {allAvailableFlats.map(flatId => {
+            const flat = flats.find(f => f.id === flatId);
+            
+            if (!flat) return null;
+            
+            // Get available dates for this flat
+            const availableDates = sortedResults
+              .filter(result => result.availableFlats.includes(flatId))
+              .map(result => result.date);
+            
+            // Is this flat available on the exact selected date?
+            const exactDateResult = results.find(
+              r => format(r.date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
+            );
+            const availableOnExactDate = exactDateResult?.availableFlats.includes(flatId) || false;
+            
+            return (
+              <Card 
+                key={flatId}
                 className={cn(
-                  "relative",
-                  availableOnExactDate ? `bg-${locationColor} text-white` : "bg-gray-100"
+                  "overflow-hidden border-2",
+                  availableOnExactDate ? `border-${locationColor}` : "border-gray-200"
                 )}
               >
-                <CardTitle className="flex items-center">
-                  Flat {flatId}
-                  {availableOnExactDate && (
-                    <CheckCheck className="ml-2 h-5 w-5" />
+                <CardHeader 
+                  className={cn(
+                    "relative",
+                    availableOnExactDate ? `bg-${locationColor} text-white` : "bg-gray-100"
                   )}
-                </CardTitle>
-                <CardDescription 
-                  className={availableOnExactDate ? "text-white/90" : ""}
                 >
-                  Capacity: {flat.capacity} guests
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                <h4 className="font-medium mb-2">Available Dates:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {availableDates.map(date => {
-                    const isExactDate = format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-                    
-                    return (
-                      <Badge
-                        key={date.toISOString()}
-                        variant={isExactDate ? "default" : "outline"}
-                        className={cn(
-                          isExactDate ? `bg-${locationColor} hover:bg-${locationColor}/90` : "",
-                          "text-xs"
-                        )}
-                      >
-                        {format(date, 'MMM dd (EEE)')}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  <CardTitle className="flex items-center">
+                    Flat {flatId}
+                    {availableOnExactDate && (
+                      <CheckCheck className="ml-2 h-5 w-5" />
+                    )}
+                  </CardTitle>
+                  <CardDescription 
+                    className={availableOnExactDate ? "text-white/90" : ""}
+                  >
+                    Capacity: {flat.capacity} guests
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <h4 className="font-medium mb-2">Available Dates:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {availableDates.map(date => {
+                      const isExactDate = format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+                      
+                      return (
+                        <Badge
+                          key={date.toISOString()}
+                          variant={isExactDate ? "default" : "outline"}
+                          className={cn(
+                            isExactDate ? `bg-${locationColor} hover:bg-${locationColor}/90` : "",
+                            "text-xs"
+                          )}
+                        >
+                          {format(date, 'MMM dd (EEE)')}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 export type Location = 'kadri' | 'bejai';
 
 export type Flat = {
@@ -26,3 +25,5 @@ export type DateAvailability = {
   day: string;
   availableFlats: string[];
 };
+
+export type Location = 'kadri' | 'bejai' | 'all';

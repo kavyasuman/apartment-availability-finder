@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Location } from "@/types/apartment";
 
 const formSchema = z.object({
-  location: z.enum(["kadri", "bejai"] as const),
+  location: z.enum(["all", "kadri", "bejai"] as const),
   date: z.date({
     required_error: "Please select a date.",
   }),
@@ -54,7 +53,7 @@ export default function ApartmentSearch({ onSearch }: ApartmentSearchProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      location: "kadri",
+      location: "all",
       guestCount: 1,
     },
   });
@@ -64,7 +63,7 @@ export default function ApartmentSearch({ onSearch }: ApartmentSearchProps) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-white rounded-lg shadow-lg">
+    <div className="w-full max-w-md mx-auto p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-center mb-6">Find Available Apartments</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -81,6 +80,10 @@ export default function ApartmentSearch({ onSearch }: ApartmentSearchProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    <SelectItem value="all" className="flex items-center">
+                      <div className="h-3 w-3 rounded-full bg-gradient-to-r from-apartment-kadri to-apartment-bejai mr-2"></div>
+                      <span>All Locations</span>
+                    </SelectItem>
                     <SelectItem value="kadri" className="flex items-center">
                       <div className="h-3 w-3 rounded-full bg-apartment-kadri mr-2"></div>
                       <span>Kadri</span>
@@ -92,7 +95,7 @@ export default function ApartmentSearch({ onSearch }: ApartmentSearchProps) {
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Choose between Kadri and Bejai locations.
+                  Select "All Locations" to view availability across both Kadri and Bejai. For specific location availability, select either Kadri or Bejai.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
